@@ -2,7 +2,7 @@ server:
   port: 8081
 spring:
     datasource:
-      url: jdbc:mysql://127.0.0.1:3306/qunfx?characterEncoding=UTF-8
+      url: jdbc:mysql://127.0.0.1:3306/qunfx?characterEncoding=UTF-8&serverTimezone=UTC
       username: root
       password: root
       driver-class-name: com.mysql.jdbc.Driver
@@ -21,6 +21,9 @@ spring:
       port: 6379
     main:
       allow-bean-definition-overriding: true
-
-
-
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
