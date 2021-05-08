@@ -1,11 +1,11 @@
-package com.zs.qunfx.entity;
+package com.zs.qunfx.queryParam;
 
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-public class Product {
+public class ProductQueryParam {
     private Long id;
     private String name;
     private String describe;
