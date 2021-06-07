@@ -105,8 +105,8 @@ public class BeanConfig {
                 "MS4wLjABAAAAfr2adfvksgDvXKhvdyKAcnvSJV7lKOO3gzhWTAKxAnY&&&dEK0swAAFNYHtL7cDpxFinRCtK&dytk=\n" +
                 "MS4wLjABAAAAYfPcjerswt-QyjIr445FVEoemNObFogeX0CnHCStyL8&&&db6rIwAAFSoGSKFMvH6sZ3W-qz&dytk=\n" +
                 "MS4wLjABAAAAToPcM4hZm3gcX4xj2rjN2flE7iFbbXPsyHNNXSTyV38&&&de-TBwAAFXsGGZloEimC33Xvkx&dytk=\n" +
-                "MS4wLjABAAAAnxvlCr3qJ9NT7MPTgQtL_1hIWRQwlWVD9sgEEZixwKsVnswSHswkrmwFoil3Pdib&&&dUbd6AAAFdEGsNeHsGRzHHVG3f&dytk=";
-        String bb = "MS4wLjABAAAAghrAeVQtYQcS0Wx-YU_PZ3Nhe8JDmXN6S36yt422dzU&&&RvkrLwAAJnGuIwlSxpC8skb5Kz\n" +
+                "MS4wLjABAAAAnxvlCr3qJ9NT7MPTgQtL_1hIWRQwlWVD9sgEEZixwKsVnswSHswkrmwFoil3Pdib&&&dUbd6AAAFdEGsNeHsGRzHHVG3f&dytk=\n" +
+                "MS4wLjABAAAAghrAeVQtYQcS0Wx-YU_PZ3Nhe8JDmXN6S36yt422dzU&&&RvkrLwAAJnGuIwlSxpC8skb5Kz\n" +
                 "MS4wLjABAAAAMqbN_MXj3JERdZVOTZBTVJzLelK8bc6JOyOjx02cUSCqc72BnVfKOUC4Mgu9jQl5&&&RnQ45wAAJuSurhqaQj.VWUZ0OP\n" +
                 "MS4wLjABAAAAaeQFq_-whfXnr4yV500x46p03DB0Ri-pGNdjSjcLoAGHu2BD6_h-YPI76hgaP0Vh&&&R8-5IwAAJ1yvFZteBTK3-EfPuT\n" +
                 "MS4wLjABAAAAXcpsMT6dgxpYbyMkq2KutazYImyU8RkvdKFfm4cyB9A&&&R0FDhwAAJ9mvm2H6OtMrTEdBQ5\n" +
@@ -125,7 +125,7 @@ public class BeanConfig {
                 "MS4wLjABAAAA7WSruoPjCK8jpVFepXKqJ7-56EVGOxi8Z__c51NB5ZhduH7qel43mQHflJmg6_6b&&&R-oCBAAAJ36fzml2lj1P5EfqAh\n" +
                 "MS4wLjABAAAAO9SlBMuJV2QtC6fu6DzUJ_zgToqUaPdnu_-SLgQ0_Fk&&&R0pXTAAAJ96fbjw-S12tR0dKV1\n" +
                 "MS4wLjABAAAAidXqZBwlK9rPZguAf_b2G1IGyz4w1tGOTUT3mO7Chig&&&SMw2xgAAKFyQ6F20usEeo0jMNt";
-        String[] split1 = bb.split("\n");
+        String[] split1 = aa.split("\n");
         int length = split1.length;
         for (int i = 0; i < length; i++) {
             String user = split1[i];
@@ -147,6 +147,7 @@ public class BeanConfig {
                     }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("===================报错====================" + e);
             }
         }
@@ -233,6 +234,7 @@ public class BeanConfig {
                 if (!StringUtils.isBlank(addrName)) {
                     addrList.add(addrName + "&&&" + nickname);
                 }
+                System.out.println(addrName + "&&&" + nickname);
             }
             return maxCursor;
         }
@@ -255,7 +257,7 @@ public class BeanConfig {
                 if (anchorInfo != null) {
                     String addrId = anchorInfo.getString("id");
                     String addr = getAddr(restTemplate, addrId);
-                    System.out.println(addr);
+//                    System.out.println(addr);
                     return addr;
                 }
             }
@@ -274,11 +276,14 @@ public class BeanConfig {
             JSONObject jsonObject = JSONObject.parseObject(body);
 
             JSONObject poiInfo = jsonObject.getJSONObject("poi_info");
+
             if (poiInfo != null) {
+            JSONObject poiExt = jsonObject.getJSONObject("poi_ext");
+            String cost = poiExt == null ? "" : poiExt.getString("cost");
                 String poiName = poiInfo.getString("poi_name");
 //            JSONObject addressInfo = poiInfo.getJSONObject("address_info");
 //            String simpleAddr = addressInfo.getString("simple_addr");
-                return poiName;
+                return poiName + "===" + cost;
             }
         }
         return "";
