@@ -54,6 +54,7 @@ public class BeanConfig2 {
 
     public static void main(String[] args) {
         System.out.println(123);
+        RestTemplate restTemplate = new BeanConfig().restTemplate();
 
 //        List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/第十一轮/带人均收入的源数据（第二版全）.txt");
         List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/第十一轮/原始数据（6月4号第三版）.txt");
@@ -173,6 +174,7 @@ public class BeanConfig2 {
 
         Integer sum2 = 0;
         ArrayList<String> 加盟店list = new ArrayList<>();
+        ArrayList<String> 非加盟店list = new ArrayList<>();
         ArrayList<String> 加盟总店list = new ArrayList<>();
         ArrayList<String> 探店1次加盟店list = new ArrayList<>();
         ArrayList<String> 探店2次加盟店list = new ArrayList<>();
@@ -208,6 +210,7 @@ public class BeanConfig2 {
         HashMap<String, Integer> 总店map = new HashMap<>();
 
         HashSet<String> 品牌set = new HashSet<>();
+        HashSet<String> 品牌非总店set = new HashSet<>();
         HashMap<String, Integer> 每个品牌的店数量map = new HashMap<>();
 
         Integer 连锁店探店次数 = 0;
@@ -221,14 +224,24 @@ public class BeanConfig2 {
             Double price = Double.valueOf(key.split("===")[1]);
             String name = key.split("===")[0];
             总探店次数 += entry.getValue();
+
+            if (!name.endsWith("店)")) {
+//                if (非加盟店list.size() < 20) {
+                非加盟店list.add(name);
+//                }
+            }
+
             if (name.endsWith("店)")) {
                 连锁店探店次数 += entry.getValue();
                 加盟店list.add(name);
                 String 品牌name = name.split("\\(")[0];
                 品牌set.add(品牌name);
+                if (!name.endsWith("总店)")) {
+                    品牌非总店set.add(品牌name);
+                }
                 if (每个品牌的店数量map.get(品牌name) == null) {
                     每个品牌的店数量map.put(name.split("\\(")[0], 1);
-                }else{
+                } else {
                     Integer num = 每个品牌的店数量map.get(品牌name);
                     每个品牌的店数量map.put(name.split("\\(")[0], num + 1);
                 }
@@ -342,7 +355,7 @@ public class BeanConfig2 {
         for (Map.Entry<String, Integer> entry : 每个品牌的店数量map1.entrySet()) {
             System.out.println(entry.getValue() + " " + entry.getKey());
 
-            if(entry.getValue() > 1){
+            if (entry.getValue() > 1) {
                 品牌的店数量大于1map.put(entry.getKey(), entry.getValue());
             }
         }
@@ -356,7 +369,6 @@ public class BeanConfig2 {
         }
 
 
-
         System.out.println(123);
         Map<String, Integer> 总店map1 = sortMapByValue(总店map);
         ArrayList<String> 店铺NameList = new ArrayList<>();
@@ -365,6 +377,56 @@ public class BeanConfig2 {
             String 店name = entry.getKey().split("\\(")[0];
             店铺NameList.add(店name);
         }
+
+        HashMap<String, List<String>> ppMap = new HashMap<>();
+        HashMap<String, String> ppMap2 = new HashMap<>();
+        for (String 品牌名字 : 品牌非总店set) {
+            ArrayList<String> 店铺list = new ArrayList<>();
+            ArrayList<String> 店铺所属省市list = new ArrayList<>();
+            String 总店省市 = null;
+            JSONObject res = getRes(restTemplate, 品牌名字, "0");
+            res = 重试(restTemplate, 品牌名字, res);
+
+            JSONArray results = res.getJSONArray("result");
+            if (results != null) {
+                int length = results.size();
+                System.out.println(品牌名字 + "===次数===" + length);
+                for (int i = 0; i < length; i++) {
+                    JSONObject result = results.getJSONObject(i);
+                    String name = result.getString("name");
+                    String province = result.getString("province");
+                    String address = result.getString("address");
+                    String city = result.getString("city");
+                    if (name.equals(品牌名字) || name.contains(品牌名字 + "(")) {
+                        if (name.contains("总店)")) {
+                            总店省市 = name + "&&&" + province + "===" + city;
+                        }
+                        店铺list.add(name + "===" + province + "&&&" + address);
+                        if (!StringUtils.isBlank(province) || !StringUtils.isBlank(city)) {
+                            店铺所属省市list.add(province + "===" + city);
+                        }
+                    }
+                }
+                if (总店省市 == null && 店铺所属省市list.size() > 0) {
+                    总店省市 = ListOptUtils.getMostItem(店铺所属省市list);
+                }
+                ppMap2.put(品牌名字, 总店省市);
+                ppMap.put(品牌名字, 店铺list);
+            }
+        }
+
+        System.out.println(123);
+        for (Map.Entry<String, String> entry : ppMap2.entrySet()) {
+            System.out.println(entry.getKey() + "：" + entry.getValue());
+        }
+        System.out.println(123);
+        for (Map.Entry<String, List<String>> entry : ppMap.entrySet()) {
+            List<String> value = entry.getValue();
+            for (String s : value) {
+                System.out.println(s);
+            }
+        }
+
 
         HashMap<String, Integer> 带总店的店铺map = new HashMap<>();
         for (String name : 店铺NameList) {
@@ -384,6 +446,42 @@ public class BeanConfig2 {
 
         System.out.println(123);
 
+    }
+
+    private static JSONObject 重试(RestTemplate restTemplate, String 品牌名字, JSONObject res) {
+        String status = res.getString("status");
+        while (status.equals("401")) {
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            res = getRes(restTemplate, 品牌名字, "0");
+            status = res.getString("status");
+
+        }
+
+        return res;
+    }
+
+    private static JSONObject getRes(RestTemplate restTemplate, String keyWord, String pageNum) {
+        String url2 = "http://api.map.baidu.com/place/v2/search?query=" + keyWord
+                + "&tag=美食&region=西安市&output=json&ak=WVAXZ05oyNRXS5egLImmentg&page_num=" + pageNum + "&page_size=20";
+        String url = "http://api.map.baidu.com/place/v2/suggestion?query=" + keyWord
+                + "&tag=美食&region=西安市&output=json&ak=aHd3uLjwA5UFeLl7fPdeeBC5s4Q2mQze&page_num=" + pageNum + "&page_size=20";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("user-agent",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36");
+        HttpEntity<String> forEntity = restTemplate
+                .exchange(url, HttpMethod.GET, new HttpEntity<>(null, headers),
+                        String.class);
+
+        if (forEntity != null && forEntity.getBody() != null) {
+            String body = forEntity.getBody();
+            JSONObject jsonObject = JSONObject.parseObject(body);
+            return jsonObject;
+        }
+        return null;
     }
 
     private static List<String> getArrayList(String fileName) {
