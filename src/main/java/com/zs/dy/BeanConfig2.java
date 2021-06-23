@@ -57,7 +57,8 @@ public class BeanConfig2 {
         RestTemplate restTemplate = new BeanConfig().restTemplate();
 
 //        List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/第十一轮/带人均收入的源数据（第二版全）.txt");
-        List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/第十一轮/原始数据（6月4号第三版）.txt");
+//        List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/第十一轮/原始数据（6月4号第三版）.txt");
+        List<String> addrList = getArrayList("/Users/zhangshuai/Desktop/精益创新/成都源数据汇总.txt");
 
 //        String[] split12 = bb.split("\n");
 //        int length2 = split12.length;
